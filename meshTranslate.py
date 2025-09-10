@@ -67,10 +67,13 @@ def main():
         input_path = os.path.join(args.input, args.filename)
 
     output_path = os.path.join(args.output, "mesh_transformed.obj")
+    print(f"➡️ Output will be saved to {output_path}")
     metadata_path = os.path.join(args.output, "mesh_metadata.json")
+    print(f"➡️ Metadata will be saved to {metadata_path}")
 
     # Load the mesh scene
     scene = trimesh.load(input_path)
+    print('input_path', input_path)
 
     # Use offset only if provided, else default to zero
      # Load JSON config
@@ -79,6 +82,8 @@ def main():
         config = json.loads(args.json)
     except json.JSONDecodeError as e:
         raise ValueError(f"Invalid JSON string passed to --json: {e}")
+    
+    print('config', config)
 
     offsets = config.get("offset", [0, 0, 0])
     images = config.get("images", [])
@@ -87,10 +92,14 @@ def main():
         raise ValueError("Offset must be an array of exactly 3 values [x, y, z]")
 
     offset_x, offset_y, offset_z = offsets
+    
+    print(f"Using offsets: x={offset_x}, y={offset_y}, z={offset_z}")
 
     # Define CRS transformer
     transformer = pyproj.Transformer.from_crs(args.in_crs, args.out_crs, always_xy=True)
     first_vertex = None
+    
+    print(f"Transforming from {args.in_crs} to {args.out_crs}")
 
     # Apply offset + CRS transformation
     for name, mesh in scene.geometry.items():
