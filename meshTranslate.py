@@ -143,7 +143,7 @@ def main():
      # Save anchor point metadata
     if first_vertex:
         metadata = {
-            "offset": first_vertex,
+            "offset": [first_vertex[0], first_vertex[1], 0],
             "images": transformed_images
         }
         with open(metadata_path, "w") as f:
