@@ -1,0 +1,4 @@
+argparse
+trimesh
+pyproj
+requests
