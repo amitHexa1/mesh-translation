@@ -50,10 +50,10 @@ def download_file(url, dest):
         raise Exception(f"Failed to download {url}: {r.status_code}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Transform OBJ mesh with optional offset and CRS conversion.")
+    parser = argparse.ArgumentParser(description="Transform OBJ mesh using offsets and CRS conversion with JSON input.")
     parser.add_argument("--input", required=True, help="Input folder path or base URL containing the OBJ/MTL/Textures")
     parser.add_argument("--output", required=True, help="Output folder for transformed OBJ")
-    parser.add_argument("--offset", nargs=3, type=float, required=False, help="Optional offset values: offset_x offset_y offset_z")
+    parser.add_argument("--json", required=True, help="Path to JSON file containing offsets and images data")
     parser.add_argument("--in_crs", required=True, help="Input CRS (e.g. EPSG:32631)")
     parser.add_argument("--out_crs", required=True, help="Output CRS (e.g. EPSG:2054)")
     parser.add_argument("--filename", default="odm_textured_model_geo.obj", help="OBJ filename (default: odm_textured_model_geo.obj)")
@@ -73,10 +73,17 @@ def main():
     scene = trimesh.load(input_path)
 
     # Use offset only if provided, else default to zero
-    if args.offset:
-        offset_x, offset_y, offset_z = args.offset
-    else:
-        offset_x = offset_y = offset_z = 0.0
+     # Load JSON config
+    with open(args.json, "r") as f:
+        config = json.load(f)
+
+    offsets = config.get("offset", [0, 0, 0])
+    images = config.get("images", [])
+
+    if len(offsets) != 3:
+        raise ValueError("Offset must be an array of exactly 3 values [x, y, z]")
+
+    offset_x, offset_y, offset_z = offsets
 
     # Define CRS transformer
     transformer = pyproj.Transformer.from_crs(args.in_crs, args.out_crs, always_xy=True)
@@ -107,6 +114,26 @@ def main():
             offset_vertices.append([new_x, new_y, new_z])
         
         mesh.vertices = offset_vertices
+        
+     # Transform image points
+    transformed_images = []
+    for img in images:
+        filename = img.get("filename")
+        point = img.get("point")
+        if point and len(point) == 3:
+            px, py, pz = point
+            # Apply same offset
+            px_global = px
+            py_global = py
+            pz_global = pz
+            # CRS transform
+            new_px, new_py = transformer.transform(px_global, py_global)
+            transformed_images.append({
+                "filename": filename,
+                "point": [new_px, new_py, pz_global]
+            })
+        else:
+            transformed_images.append(img)  # keep unchanged if invalid
     
     # Export transformed mesh
     os.makedirs(args.output, exist_ok=True)
@@ -116,7 +143,8 @@ def main():
      # Save anchor point metadata
     if first_vertex:
         metadata = {
-            "anchor_point": first_vertex,
+            "offset": first_vertex,
+            "images": transformed_images
         }
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2)
