@@ -74,8 +74,11 @@ def main():
 
     # Use offset only if provided, else default to zero
      # Load JSON config
-    with open(args.json, "r") as f:
-        config = json.load(f)
+    # Load JSON config (string from frontend)
+    try:
+        config = json.loads(args.json)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON string passed to --json: {e}")
 
     offsets = config.get("offset", [0, 0, 0])
     images = config.get("images", [])
