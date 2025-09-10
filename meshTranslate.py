@@ -60,6 +60,12 @@ def main():
     parser.add_argument("--filename", default="odm_textured_model_geo.obj", help="OBJ filename (default: odm_textured_model_geo.obj)")
     args = parser.parse_args()
     
+    print(f"🔍 Input: {args.input}")
+    print(f"📁 Output: {args.output}")
+    print(f"🗺️ Input CRS: {args.in_crs}, Output CRS: {args.out_crs}")
+    print(f"📂 Filename: {args.filename}")
+    print(f"📝 JSON Config: {args.json}")
+    
     local_dir = None
 
     # If input looks like a URL, download locally first
