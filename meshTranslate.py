@@ -4,6 +4,7 @@ import trimesh
 import pyproj
 import requests
 import json
+import shutil
 from urllib.parse import urljoin
 
 def download_mesh_folder(base_url, filename, download_dir):
@@ -58,6 +59,8 @@ def main():
     parser.add_argument("--out_crs", required=True, help="Output CRS (e.g. EPSG:2054)")
     parser.add_argument("--filename", default="odm_textured_model_geo.obj", help="OBJ filename (default: odm_textured_model_geo.obj)")
     args = parser.parse_args()
+    
+    local_dir = None
 
     # If input looks like a URL, download locally first
     if args.input.startswith("http://") or args.input.startswith("https://"):
@@ -66,7 +69,7 @@ def main():
     else:
         input_path = os.path.join(args.input, args.filename)
 
-    output_path = os.path.join(args.output, "mesh_transformed.obj")
+    output_path = os.path.join(args.output, args.filename)
     print(f"➡️ Output will be saved to {output_path}")
     metadata_path = os.path.join(args.output, "mesh_metadata.json")
     print(f"➡️ Metadata will be saved to {metadata_path}")
@@ -161,6 +164,16 @@ def main():
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2)
         print(f"📝 Metadata saved to {metadata_path}")
+        
+    old_mtl = os.path.join(os.path.dirname(output_path), "material.mtl")
+    new_mtl_path = os.path.join(os.path.dirname(output_path), "odm_textured_model_geo.mtl")
+    if os.path.exists(old_mtl):
+        os.rename(old_mtl, new_mtl_path)
+        
+    # ✅ Clean up downloaded folder if used
+    if local_dir and os.path.exists(local_dir):
+        shutil.rmtree(local_dir)
+        print(f"🗑️ Cleaned up temporary folder {local_dir}")
 
 if __name__ == "__main__":
     main()
