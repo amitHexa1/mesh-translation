@@ -161,6 +161,16 @@ def main():
     scene.export(output_path)
     print(f"✅ Transformed mesh saved to {output_path}")
     
+    # 🔧 Fix material reference in OBJ
+    with open(output_path, "r") as f:
+        obj_data = f.read()
+
+    obj_data = obj_data.replace("material.mtl", "odm_textured_model_geo.mtl")
+
+    with open(output_path, "w") as f:
+        f.write(obj_data)
+    print("🔗 Updated OBJ to reference odm_textured_model_geo.mtl")
+    
      # Save anchor point metadata
     if first_vertex:
         metadata = {
@@ -175,6 +185,7 @@ def main():
     new_mtl_path = os.path.join(os.path.dirname(output_path), "odm_textured_model_geo.mtl")
     if os.path.exists(old_mtl):
         os.rename(old_mtl, new_mtl_path)
+        print(f"📂 Renamed material file to {new_mtl_path}")
         
     # ✅ Clean up downloaded folder if used
     if local_dir and os.path.exists(local_dir):
