@@ -139,6 +139,7 @@ def main():
      # Transform image points
     transformed_images = []
     for img in images:
+        print('img', img)
         filename = img.get("filename")
         point = img.get("point")
         if point and len(point) == 3:
@@ -153,6 +154,7 @@ def main():
                 "filename": filename,
                 "point": [new_px, new_py, pz_global]
             })
+            print(f"Transformed point: {new_px}, {new_py}, {pz_global}")
         else:
             transformed_images.append(img)  # keep unchanged if invalid
     
