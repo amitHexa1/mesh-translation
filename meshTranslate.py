@@ -182,25 +182,13 @@ def main():
         with open(metadata_path, "w") as f:
             json.dump(metadata, f, indent=2)
         print(f"📝 Metadata saved to {metadata_path}")
-
-    # ✅ Copy original MTL (with map_Kd) instead of using Trimesh’s stripped version
-    original_mtl = os.path.join(os.path.dirname(input_path), args.filename.replace(".obj", ".mtl"))
-    new_mtl_path = os.path.join(args.output, "odm_textured_model_geo.mtl")
-    if os.path.exists(original_mtl):
-        shutil.copy(original_mtl, new_mtl_path)
-        print(f"📂 Copied original MTL (with textures) to {new_mtl_path}")
-    else:
-        print("⚠️ Warning: Original MTL not found, OBJ may not display textures correctly.")
-
-    # ✅ Copy textures (keep them alongside OBJ/MTL in output)
-    for tex in os.listdir(os.path.dirname(input_path)):
-        if tex.lower().endswith((".jpg", ".jpeg", ".png")):
-            src = os.path.join(os.path.dirname(input_path), tex)
-            dst = os.path.join(args.output, tex)
-            if not os.path.exists(dst):
-                shutil.copy(src, dst)
-                print(f"🖼️ Copied texture {tex} to output folder")
-
+        
+    old_mtl = os.path.join(os.path.dirname(output_path), "material.mtl")
+    new_mtl_path = os.path.join(os.path.dirname(output_path), "odm_textured_model_geo.mtl")
+    if os.path.exists(old_mtl):
+        os.rename(old_mtl, new_mtl_path)
+        print(f"📂 Renamed material file to {new_mtl_path}")
+        
     # ✅ Clean up downloaded folder if used
     if local_dir and os.path.exists(local_dir):
         shutil.rmtree(local_dir)
